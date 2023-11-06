@@ -15,5 +15,6 @@ mod probes;
 
 #[panic_handler]
 fn panic(_info: &core::panic::PanicInfo) -> ! {
-    unsafe { core::hint::unreachable_unchecked() }
+    //unsafe { core::hint::unreachable_unchecked() }
+    loop {}
 }

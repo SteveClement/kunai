@@ -79,7 +79,7 @@ impl SockHelper {
     }
 }
 
-#[kretprobe(name = "net.dns.exit.vfs_read")]
+#[kretprobe(function = "net.dns.exit.vfs_read")]
 pub fn exit_vfs_read(ctx: ProbeContext) -> u32 {
     match unsafe { try_exit_vfs_read(&ctx) } {
         Ok(_) => error::BPF_PROG_SUCCESS,
@@ -116,7 +116,7 @@ unsafe fn try_exit_vfs_read(ctx: &ProbeContext) -> ProbeResult<()> {
     Ok(())
 }
 
-#[kretprobe(name = "net.dns.exit.__sys_recvfrom")]
+#[kretprobe(function = "net.dns.exit.__sys_recvfrom")]
 pub fn exit_recv(ctx: ProbeContext) -> u32 {
     match unsafe {
         restore_entry_ctx(ProbeFn::__sys_recvfrom)
@@ -164,7 +164,7 @@ unsafe fn try_exit_recv(
     Ok(())
 }
 
-#[kretprobe(name = "net.dns.exit.__sys_recvmsg")]
+#[kretprobe(function = "net.dns.exit.__sys_recvmsg")]
 pub fn exit_sys_recvmsg(ctx: ProbeContext) -> u32 {
     match unsafe {
         restore_entry_ctx(ProbeFn::__sys_recvmsg)

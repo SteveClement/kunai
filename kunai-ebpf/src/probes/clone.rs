@@ -3,7 +3,7 @@ use kunai_common::co_re::{kernel_clone_args, task_struct};
 
 use super::*;
 
-#[kprobe(name = "enter.wake_up_new_task")]
+#[kprobe(function = "enter.wake_up_new_task")]
 pub fn enter_wake_up_new_task(ctx: ProbeContext) -> u32 {
     match unsafe { try_enter_wake_up_new_task(&ctx) } {
         Ok(_) => error::BPF_PROG_SUCCESS,

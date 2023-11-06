@@ -6,7 +6,7 @@ use aya_bpf::{
     programs::ProbeContext,
 };
 
-#[kprobe(name = "fd.entry.__fdget")]
+#[kprobe(function = "fd.entry.__fdget")]
 pub fn entry_fd_get(ctx: ProbeContext) -> u32 {
     match unsafe { try_entry_fd_get(&ctx) } {
         Ok(_) => error::BPF_PROG_SUCCESS,
@@ -28,7 +28,7 @@ unsafe fn try_entry_fd_get(ctx: &ProbeContext) -> ProbeResult<()> {
     Ok(())
 }
 
-#[kretprobe(name = "fd.exit.__fdget")]
+#[kretprobe(function = "fd.exit.__fdget")]
 pub fn exit_fd_get(ctx: ProbeContext) -> u32 {
     match unsafe { try_exit_fd_get(&ctx) } {
         Ok(_) => error::BPF_PROG_SUCCESS,
@@ -100,7 +100,7 @@ unsafe fn try_exit_fd_get(ctx: &ProbeContext) -> ProbeResult<()> {
     Ok(())
 }
 
-#[kprobe(name = "fd.fd_install")]
+#[kprobe(function = "fd.fd_install")]
 pub fn fd_install(ctx: ProbeContext) -> u32 {
     match unsafe { try_track_fd(&ctx) } {
         Ok(_) => error::BPF_PROG_SUCCESS,

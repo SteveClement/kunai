@@ -52,14 +52,6 @@ fn main() -> Result<(), anyhow::Error> {
                 fs::write(release_dir.join(EBPF_DIR), b"")?;
             }
 
-            let debug_dir = PathBuf::from("target")
-                .join(bpf_build_opt.target.to_string())
-                .join("debug");
-            if !debug_dir.exists() {
-                fs::create_dir_all(&debug_dir)?;
-                fs::write(debug_dir.join(EBPF_DIR), b"")?;
-            }
-
             // checking userland code
             user::check(&mut opts)?;
             // checking ebpf code
@@ -84,12 +76,12 @@ fn main() -> Result<(), anyhow::Error> {
             // bpf-linker related variables
             let linker_dir = bt_root.join("bpf-linker");
             // linker branch supporting Debug Information (DI)
-            let linker_repo = "https://github.com/aya-rs/bpf-linker.git";
-            let linker_branch = "feature/fix-di";
+            let linker_repo = "https://github.com/alessandrod/bpf-linker.git";
+            let linker_branch = "fix-di";
             // we tight the linker to a specific commit id so that we don't get surprises
             // NB: when updating this commit in particular also remove the cold callsite disabling build
             // option from linker args
-            let linker_commit = "a79d26c1293a88a26adc1a0d3e605dd88ee7d5fc";
+            let linker_commit = git::last_commit_id(linker_repo, linker_branch)?;
 
             if opts.action_cache_key {
                 print!(
@@ -138,7 +130,7 @@ fn main() -> Result<(), anyhow::Error> {
             git::sync(linker_branch, linker_repo, &linker_dir)?;
 
             println!("Checking out to commit: {linker_commit}");
-            git::checkout(&linker_dir, linker_commit)?;
+            git::checkout(&linker_dir, &linker_commit)?;
 
             tools::build_linker(&llvm_install, linker_dir, &opts)?;
         }

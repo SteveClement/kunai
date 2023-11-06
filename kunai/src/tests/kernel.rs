@@ -46,15 +46,6 @@ fn integration() -> anyhow::Result<()> {
     mount("none", "/sys/kernel/tracing", "tracefs")?;
 
     info!("loading ebpf bytes");
-    #[cfg(debug_assertions)]
-    let mut bpf =
-        BpfLoader::new()
-            .verifier_log_level(verifier_level)
-            .load(include_bytes_aligned!(
-                "../../../target/bpfel-unknown-none/debug/kunai-ebpf"
-            ))?;
-
-    #[cfg(not(debug_assertions))]
     let mut bpf =
         BpfLoader::new()
             .verifier_log_level(verifier_level)

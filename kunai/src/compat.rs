@@ -4,6 +4,7 @@ use aya::{
 };
 use aya_obj::generated::bpf_prog_type;
 use libc::{uname, utsname};
+use log::debug;
 use std::convert::TryFrom;
 use std::ffi::CString;
 use std::fmt::Display;
@@ -174,7 +175,10 @@ impl<'a> Programs<'a> {
     pub fn from_bpf(bpf: &'a mut Bpf) -> Self {
         let m = bpf
             .programs_mut()
+            // we have to filter out labels, it is a bug
+            .filter(|(name, p)| !(name.starts_with("LBB") && name.contains("_")))
             .map(|(name, p)| {
+                debug!("available program: {name}: {:?}", p.prog_type(),);
                 let mut prog = Program::from_program(name.to_string(), p);
                 // disable debug probes by default
                 if name.starts_with("debug.") {
@@ -224,10 +228,10 @@ impl<'a> Program<'a> {
 
         match program {
             programs::Program::TracePoint(_) => {
-                let (cat, name) = Self::tp_cat_name(&self.name);
+                /*let (cat, name) = Self::tp_cat_name(&self.name);
                 if cat == "syscalls" && name.starts_with("sys_exit") {
                     return self.prio + 1;
-                }
+                }*/
                 return self.prio;
             }
             programs::Program::KProbe(program) => match program.kind() {
@@ -309,8 +313,9 @@ impl<'a> Program<'a> {
         match program {
             programs::Program::TracePoint(program) => {
                 program.load()?;
-                let (cat, name) = Self::tp_cat_name(&name);
-                program.attach(&cat, &name)?;
+                //let (cat, name) = Self::tp_cat_name(&name);
+                //program.attach(&cat, &name)?;
+                program.attach("syscalls", &name);
             }
             programs::Program::KProbe(program) => {
                 program.load()?;

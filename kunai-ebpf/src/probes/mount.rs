@@ -7,7 +7,7 @@ use aya_bpf::programs::ProbeContext;
 #[map]
 static mut MOUNT_EVENTS: LruHashMap<u128, MountEvent> = LruHashMap::with_max_entries(1024, 0);
 
-#[kretprobe(name = "fs.exit.security_sb_mount")]
+#[kretprobe(function = "fs.exit.security_sb_mount")]
 pub fn exit_security_sb_mount(ctx: ProbeContext) -> u32 {
     match unsafe {
         restore_entry_ctx(ProbeFn::security_sb_mount)
@@ -58,7 +58,7 @@ unsafe fn try_exit_security_sb_mount(
 }
 
 // path_mount is available only since 5.9 before that do_mount must be hooked
-#[kretprobe(name = "fs.exit.path_mount")]
+#[kretprobe(function = "fs.exit.path_mount")]
 pub fn exit_path_mount(ctx: ProbeContext) -> u32 {
     match unsafe {
         restore_entry_ctx(ProbeFn::security_sb_mount)

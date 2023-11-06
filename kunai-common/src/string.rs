@@ -76,7 +76,7 @@ impl<const N: usize> String<N> {
             return;
         }
         let k = bound_value_for_verifier(at as isize, 0, (self.cap() - 1) as isize);
-        self.s.as_mut()[k as usize] = b;
+        self.s.get_mut(k as usize).map(|o| *o = b);
         self.len += 1;
     }
 
@@ -214,7 +214,7 @@ bpf_target_code! {
                     return Err(Error::AppendLimit);
                 }
 
-                let dst = self.s[k..limit].as_mut();
+                let dst = self.s.get_mut(k..limit).ok_or(Error::AppendLimit)?;
                 let s = bpf_probe_read_kernel_str_bytes(src as *const _, dst).map_err(|_| Error::BpfProbeReadFailure)?;
                 self.len += s.len();
             }

@@ -27,7 +27,7 @@ unsafe fn file_id(file: &co_re::file) -> ProbeResult<u128> {
     Ok((task_id as u128) << 64 | ino as u128)
 }
 
-#[kprobe(name = "fs.vfs_read")]
+#[kprobe(function = "fs.vfs_read")]
 pub fn vfs_read(ctx: ProbeContext) -> u32 {
     match unsafe { try_vfs_read(&ctx) } {
         Ok(_) => error::BPF_PROG_SUCCESS,
@@ -38,7 +38,7 @@ pub fn vfs_read(ctx: ProbeContext) -> u32 {
     }
 }
 
-#[kprobe(name = "fs.vfs_readv")]
+#[kprobe(function = "fs.vfs_readv")]
 pub fn vfs_readv(ctx: ProbeContext) -> u32 {
     match unsafe { try_vfs_read(&ctx) } {
         Ok(_) => error::BPF_PROG_SUCCESS,
@@ -86,7 +86,7 @@ unsafe fn try_vfs_read(ctx: &ProbeContext) -> ProbeResult<()> {
     Ok(())
 }
 
-#[kprobe(name = "fs.vfs_write")]
+#[kprobe(function = "fs.vfs_write")]
 pub fn vfs_write(ctx: ProbeContext) -> u32 {
     match unsafe { try_vfs_write(&ctx) } {
         Ok(_) => error::BPF_PROG_SUCCESS,
@@ -97,7 +97,7 @@ pub fn vfs_write(ctx: ProbeContext) -> u32 {
     }
 }
 
-#[kprobe(name = "fs.vfs_writev")]
+#[kprobe(function = "fs.vfs_writev")]
 pub fn vfs_writev(ctx: ProbeContext) -> u32 {
     match unsafe { try_vfs_write(&ctx) } {
         Ok(_) => error::BPF_PROG_SUCCESS,
@@ -136,7 +136,7 @@ unsafe fn try_vfs_write(ctx: &ProbeContext) -> ProbeResult<()> {
     Ok(())
 }
 
-#[kprobe(name = "fs.security_path_rename")]
+#[kprobe(function = "fs.security_path_rename")]
 pub fn security_path_rename(ctx: ProbeContext) -> u32 {
     match unsafe { try_security_path_rename(&ctx) } {
         Ok(_) => error::BPF_PROG_SUCCESS,

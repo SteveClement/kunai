@@ -3,7 +3,7 @@ use kunai_common::{co_re::sock_fprog_kern, net::SocketInfo};
 
 use super::*;
 
-#[kretprobe(name = "sk.exit.__sk_attach_prog")]
+#[kretprobe(function = "sk.exit.__sk_attach_prog")]
 pub fn exit_sk_attach_prog(exit_ctx: ProbeContext) -> u32 {
     match unsafe {
         restore_entry_ctx(ProbeFn::__sk_attach_prog)
@@ -25,7 +25,7 @@ pub fn exit_sk_attach_prog(exit_ctx: ProbeContext) -> u32 {
     }
 }
 
-#[kretprobe(name = "sk.exit.reuseport_attach_prog")]
+#[kretprobe(function = "sk.exit.reuseport_attach_prog")]
 pub fn exit_reuseport_attach_prog(exit_ctx: ProbeContext) -> u32 {
     match unsafe {
         restore_entry_ctx(ProbeFn::reuseport_attach_prog)

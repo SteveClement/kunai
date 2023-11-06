@@ -88,7 +88,7 @@ impl BuildOptions {
         let mut rustflags = self.mandatory_rustflags();
 
         // profile we are building (release or debug)
-        let profile = if self.release { "release" } else { "debug" };
+        let profile = "release";
 
         // we get the binary path
         let linker_out_dir = {
@@ -144,9 +144,10 @@ fn cargo(command: &str, dir: &str, opts: &BuildOptions) -> Command {
         "build-std=core".into(),
     ];
 
-    if opts.release {
-        args.push("--release".into())
-    } else {
+    // always build in release mode
+    args.push("--release".into());
+
+    if !opts.release {
         args.push("--features=debug".into())
     }
 

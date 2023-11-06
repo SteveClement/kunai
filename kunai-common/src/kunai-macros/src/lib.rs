@@ -1,6 +1,11 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, LitStr};
+use syn::{
+    parse::{self, Parse, ParseStream},
+    parse_macro_input,
+    punctuated::{Pair, Punctuated},
+    Attribute, DeriveInput, Error, Ident, ItemFn, LitStr, Token,
+};
 
 fn split_on_capital_letters(s: &str) -> Vec<String> {
     let mut words = Vec::new();
@@ -191,4 +196,113 @@ pub fn str_enum_derive(item: TokenStream) -> TokenStream {
         }
     )
     .into()
+}
+
+pub(crate) struct NameValue {
+    name: Ident,
+    value: LitStr,
+}
+
+pub(crate) enum Arg {
+    String(NameValue),
+    Bool(Ident),
+}
+
+pub(crate) struct Args {
+    pub(crate) args: Vec<Arg>,
+}
+
+impl Parse for Args {
+    fn parse(input: ParseStream) -> syn::Result<Args> {
+        let args = Punctuated::<Arg, Token![,]>::parse_terminated_with(input, |input| {
+            let ident = input.parse::<Ident>()?;
+            let lookahead = input.lookahead1();
+            if input.is_empty() || lookahead.peek(Token![,]) {
+                Ok(Arg::Bool(ident))
+            } else if lookahead.peek(Token![=]) {
+                let _: Token![=] = input.parse()?;
+                Ok(Arg::String(NameValue {
+                    name: ident,
+                    value: input.parse()?,
+                }))
+            } else {
+                Err(lookahead.error())
+            }
+        })?
+        .into_pairs()
+        .map(|pair| match pair {
+            Pair::Punctuated(name_val, _) => name_val,
+            Pair::End(name_val) => name_val,
+        })
+        .collect();
+
+        Ok(Args { args })
+    }
+}
+
+pub(crate) fn pop_string_arg(args: &mut Args, name: &str) -> Option<String> {
+    args.args
+        .iter()
+        .position(|arg| matches!(arg, Arg::String(name_val) if name_val.name == name))
+        .map(|index| match args.args.remove(index) {
+            Arg::String(v) => v.value.value(),
+            _ => panic!("impossible variant"),
+        })
+}
+
+pub(crate) fn pop_bool_arg(args: &mut Args, name: &str) -> bool {
+    args.args
+        .iter()
+        .position(|arg| matches!(arg, Arg::Bool(ident) if ident == name))
+        .map(|index| match args.args.remove(index) {
+            Arg::Bool(ident) => ident,
+            _ => panic!("impossible variant"),
+        })
+        .is_some()
+}
+
+pub(crate) fn err_on_unknown_args(args: &Args) -> syn::Result<()> {
+    if let Some(arg) = args.args.get(0) {
+        let tokens = match arg {
+            Arg::String(name_val) => name_val.name.clone(),
+            Arg::Bool(ident) => ident.clone(),
+        };
+        return Err(Error::new_spanned(tokens, "invalid argument"));
+    }
+    Ok(())
+}
+
+pub(crate) fn name_arg(args: &mut Args) -> Option<String> {
+    pop_string_arg(args, "name")
+}
+
+#[proc_macro_attribute]
+//pub fn rename_function(input: TokenStream) -> TokenStream {
+pub fn rename_function(attrs: TokenStream, input: TokenStream) -> TokenStream {
+    // Parse the input tokens as a function
+
+    let mut args = parse_macro_input!(attrs as Args);
+    let new_name = pop_string_arg(&mut args, "name").unwrap();
+    let input = parse_macro_input!(input as ItemFn);
+
+    // Extract the new name from the attribute
+    //let new_name = input_function.sig.ident.clone();
+
+    let fn_vis = &input.vis.clone();
+    let attrs = input.attrs.clone();
+    let args = input.sig.inputs.clone();
+    let ret = input.sig.output;
+    let block = input.block;
+    let new_name = syn::parse_str::<Ident>(&new_name).unwrap();
+    //panic!("{:?}", attrs);
+
+    // Generate the new function with the specified identifier
+    let expanded = quote! {
+        #[kprobe]
+        #fn_vis fn #new_name(#args) #ret
+            #block
+    };
+
+    // Convert the generated code back into tokens and return them
+    TokenStream::from(expanded)
 }

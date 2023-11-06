@@ -15,10 +15,11 @@ use kunai_common::{
     syscalls::*,
 };
 
-#[cfg(feature = "debug")]
+//#[cfg(feature = "debug")]
 mod debug;
 
-mod bpf;
+// Probes
+/*mod bpf;
 mod bpf_socket;
 mod clone;
 mod connect;
@@ -34,7 +35,7 @@ mod mprotect;
 mod prctl;
 mod save;
 mod schedule;
-mod send_data;
+mod send_data;*/
 
 /// macro to track ignored results
 macro_rules! ignore_result {

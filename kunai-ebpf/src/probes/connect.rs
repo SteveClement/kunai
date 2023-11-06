@@ -3,7 +3,7 @@ use super::*;
 use aya_bpf::{helpers::bpf_ktime_get_ns, programs::ProbeContext};
 use kunai_common::net::IpPort;
 
-#[kprobe(name = "net.enter.__sys_connect")]
+#[kprobe(function = "net.enter.__sys_connect")]
 pub fn enter_sys_connect(ctx: ProbeContext) -> u32 {
     unsafe {
         ignore_result!(save_context(
@@ -15,7 +15,7 @@ pub fn enter_sys_connect(ctx: ProbeContext) -> u32 {
     0
 }
 
-#[kretprobe(name = "net.exit.__sys_connect")]
+#[kretprobe(function = "net.exit.__sys_connect")]
 pub fn exit_sys_connect(ctx: ProbeContext) -> u32 {
     match unsafe {
         restore_entry_ctx(ProbeFn::__sys_connect)

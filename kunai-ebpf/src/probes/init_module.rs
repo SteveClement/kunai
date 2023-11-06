@@ -7,7 +7,7 @@ use aya_bpf::programs::{ProbeContext, TracePointContext};
 static mut INIT_MODULE_TRACKING: LruHashMap<u64, InitModuleEvent> =
     LruHashMap::with_max_entries(1024, 0);
 
-#[kprobe(name = "lkm.mod_sysfs_setup")]
+#[kprobe(function = "lkm.mod_sysfs_setup")]
 pub fn mod_sysfs_setup(ctx: ProbeContext) -> u32 {
     match unsafe { try_mod_sysfs_setup(&ctx) } {
         Ok(_) => error::BPF_PROG_SUCCESS,
@@ -42,7 +42,7 @@ pub struct InitModuleArgs {
     pub uargs: u64,
 }
 
-#[tracepoint(name = "lkm.syscalls.sys_enter_init_module")]
+#[tracepoint(category = "syscalls", name = "lkm.syscalls.sys_enter_init_module")]
 pub fn sys_enter_init_module(ctx: TracePointContext) -> u32 {
     match unsafe { try_sys_enter_init_module(&ctx) } {
         Ok(_) => error::BPF_PROG_SUCCESS,
@@ -77,7 +77,7 @@ unsafe fn try_sys_enter_init_module(ctx: &TracePointContext) -> ProbeResult<()> 
     Ok(())
 }
 
-#[tracepoint(name = "lkm.syscalls.sys_exit_init_module")]
+#[tracepoint(category = "syscalls", name = "lkm.syscalls.sys_exit_init_module")]
 pub fn sys_exit_init_module(ctx: TracePointContext) -> u32 {
     match unsafe { try_sys_exit_init_module(&ctx) } {
         Ok(_) => error::BPF_PROG_SUCCESS,

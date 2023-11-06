@@ -459,7 +459,7 @@ impl Path {
 
             // we need to bound check index to massage the verifier
             i = bound_value_for_verifier(i, 0, (self.buffer.len() - 1) as isize);
-            self.buffer[i as usize] = b'/';
+            self.buffer.get_mut(i as usize).map(|o| *o = b'/');
             self.len += 1;
             Ok(())
         }

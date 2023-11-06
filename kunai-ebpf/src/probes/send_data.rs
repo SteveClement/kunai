@@ -11,7 +11,7 @@ idea came of a more generic event giving more high level information,
 such as the shannon entropy, of the data sent over the network.
  */
 
-#[kprobe(name = "net.sock_sendmsg")]
+#[kprobe(function = "net.sock_sendmsg")]
 pub fn sock_sendmsg(ctx: ProbeContext) -> u32 {
     match unsafe { try_sock_send_data(&ctx) } {
         Ok(_) => error::BPF_PROG_SUCCESS,

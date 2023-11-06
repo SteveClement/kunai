@@ -29,7 +29,7 @@ pub fn cap_size<T: Copy + PartialOrd + Rem<Output = T>>(size: T, cap: T) -> T {
 
 #[inline(always)]
 #[allow(unused_variables)]
-pub fn bound_value_for_verifier(v: isize, min: isize, max: isize) -> isize {
+pub const fn bound_value_for_verifier(v: isize, min: isize, max: isize) -> isize {
     #[cfg(target_arch = "bpf")]
     {
         if v < min {

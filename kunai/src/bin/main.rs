@@ -602,9 +602,11 @@ impl EventProcessor {
 
     #[inline]
     fn json_init_module(&self, info: StdEventInfo, event: &InitModuleEvent) -> JsonValue {
+        let ancestors = self.get_ancestors(&info);
         let (exe, cmd_line) = self.get_exe_and_command_line(&info);
 
         let data = object! {
+            ancestors: ancestors,
             command_line: cmd_line,
             exe: exe.to_string_lossy().as_ref(),
             module_name: event.data.name.to_string(),
@@ -1335,15 +1337,7 @@ async fn main() -> Result<(), anyhow::Error> {
         ));
     }
 
-    #[cfg(debug_assertions)]
-    let mut bpf =
-        BpfLoader::new()
-            .verifier_log_level(verifier_level)
-            .load(include_bytes_aligned!(
-                "../../../target/bpfel-unknown-none/debug/kunai-ebpf"
-            ))?;
-
-    #[cfg(not(debug_assertions))]
+    // loading bpf
     let mut bpf =
         BpfLoader::new()
             .verifier_log_level(verifier_level)
@@ -1380,7 +1374,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let mut programs = Programs::from_bpf(&mut bpf);
 
-    kunai::configure_probes(&mut programs, current_kernel);
+    //kunai::configure_probes(&mut programs, current_kernel);
 
     // generic program loader
     for (_, mut p) in programs.into_vec_sorted_by_prio() {
